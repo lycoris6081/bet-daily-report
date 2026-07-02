@@ -1,0 +1,1788 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>遊戲整體押量、虎機與魚機營運分析日報</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      color: #172033;
+      background:
+        radial-gradient(circle at 8% 8%, rgba(61, 92, 255, .16), transparent 28%),
+        radial-gradient(circle at 92% 10%, rgba(0, 194, 255, .14), transparent 26%),
+        linear-gradient(135deg, #eef4ff 0%, #f8fbff 48%, #edf3ff 100%);
+    }
+
+    .report {
+      max-width: 1240px;
+      margin: 0 auto;
+      border-radius: 30px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 22px 55px rgba(18, 36, 82, .16);
+      border: 1px solid rgba(79, 114, 255, .16);
+    }
+
+    .hero {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 28px;
+      padding: 38px 42px;
+      color: #fff;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.30), transparent 30%),
+        radial-gradient(circle at 20% 80%, rgba(0, 225, 255, .20), transparent 24%),
+        linear-gradient(135deg, #07153f 0%, #1736a3 54%, #5b7cff 100%);
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      bottom: -100px;
+      width: 320px;
+      height: 320px;
+      border-radius: 999px;
+      border: 48px solid rgba(255,255,255,.08);
+      pointer-events: none;
+    }
+
+    .hero-left,
+    .hero-status {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 13px;
+      margin-bottom: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.24);
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: .4px;
+      line-height: 1.22;
+    }
+
+    .hero p {
+      margin: 0;
+      opacity: .92;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .meta-chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,.94);
+    }
+
+    .hero-status {
+      width: 310px;
+      padding: 22px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.25);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 34px rgba(0, 0, 0, .15);
+    }
+
+    .status-label {
+      font-size: 13px;
+      opacity: .82;
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+
+    .status-value {
+      font-size: 31px;
+      font-weight: 950;
+      margin-bottom: 8px;
+      letter-spacing: .4px;
+    }
+
+    .status-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      opacity: .92;
+    }
+
+    .content {
+      padding: 32px 36px 38px;
+    }
+
+    .section {
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0 0 14px;
+      font-size: 27px;
+      font-weight: 950;
+      color: #0b1f4d;
+      line-height: 1.25;
+    }
+
+    .section-title .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2046d8, #6a86ff);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 10px 22px rgba(44, 89, 255, 0.25);
+      flex-shrink: 0;
+    }
+
+    .section-subtitle {
+      color: #5d6b8a;
+      font-size: 14px;
+      line-height: 1.7;
+      margin: -2px 0 18px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      position: relative;
+      padding: 20px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top right, rgba(79, 114, 255, .10), transparent 36%),
+        linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+      border: 1px solid #dce6ff;
+      box-shadow: 0 10px 28px rgba(18, 45, 103, 0.08);
+      overflow: hidden;
+    }
+
+    .label {
+      color: #566784;
+      font-weight: 850;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .value {
+      font-size: 30px;
+      font-weight: 950;
+      color: #071633;
+      margin-bottom: 8px;
+      line-height: 1.22;
+    }
+
+    .small-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: #071633;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .muted {
+      color: #687386;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .positive {
+      color: #0c9b63 !important;
+      font-weight: 900;
+    }
+
+    .negative {
+      color: #d9475c !important;
+      font-weight: 900;
+    }
+
+    .neutral {
+      color: #4f72ff !important;
+      font-weight: 900;
+    }
+
+    .signal {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      background: #eef4ff;
+      color: #2146d8;
+      border: 1px solid #dce6ff;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .kpi-card {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(79, 114, 255, .13), transparent 36%),
+        linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+      border: 1px solid #dce6ff;
+      border-radius: 24px;
+      padding: 22px 22px 18px;
+      box-shadow: 0 12px 30px rgba(18, 45, 103, 0.09);
+    }
+
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, #2146d8, #6a86ff, #00c2ff);
+    }
+
+    .kpi-label {
+      font-size: 15px;
+      color: #556582;
+      font-weight: 850;
+      margin-bottom: 10px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      line-height: 1.25;
+      font-weight: 950;
+      color: #0b2154;
+      margin-bottom: 12px;
+      letter-spacing: .2px;
+    }
+
+    .kpi-compare {
+      background: rgba(245, 248, 255, .92);
+      border: 1px solid #e1e9ff;
+      border-radius: 17px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .kpi-compare-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #5d6b8a;
+      margin-bottom: 7px;
+    }
+
+    .kpi-compare-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .kpi-compare-value {
+      color: #112d67;
+      font-weight: 850;
+      text-align: right;
+    }
+
+    .kpi-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 850;
+      margin-bottom: 10px;
+    }
+
+    .kpi-delta.positive {
+      background: rgba(12, 155, 99, 0.10);
+      border: 1px solid rgba(12, 155, 99, 0.18);
+    }
+
+    .kpi-delta.negative {
+      background: rgba(217, 71, 92, 0.10);
+      border: 1px solid rgba(217, 71, 92, 0.18);
+    }
+
+    .kpi-delta.neutral {
+      background: rgba(122, 134, 159, 0.12);
+      border: 1px solid rgba(122, 134, 159, 0.18);
+    }
+
+    .kpi-note {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #60708f;
+    }
+
+    .radar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .radar-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 136px;
+      background:
+        radial-gradient(circle at top right, rgba(79, 114, 255, .14), transparent 38%),
+        #ffffff;
+      border: 1px solid #dfe8ff;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 8px 20px rgba(18, 45, 103, 0.06);
+    }
+
+    .radar-label {
+      font-size: 13px;
+      font-weight: 850;
+      color: #61708f;
+      margin-bottom: 8px;
+    }
+
+    .radar-status {
+      font-size: 19px;
+      font-weight: 950;
+      color: #0f2b66;
+      margin-bottom: 8px;
+    }
+
+    .radar-desc {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #60708f;
+    }
+
+    .rank-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 16px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(79, 114, 255, .10), transparent 32%),
+        #f8fbff;
+      border: 1px solid #dbe6ff;
+      box-shadow: 0 8px 20px rgba(18, 45, 103, 0.05);
+    }
+
+    .rank-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #eaf0ff, #dfe8ff);
+      color: #2146d8;
+      font-weight: 950;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .rank-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rank-title {
+      font-size: 16px;
+      font-weight: 950;
+      color: #0b1f4d;
+      margin-bottom: 4px;
+    }
+
+    .rank-meta {
+      color: #687386;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .category-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #2146d8;
+      font-size: 13px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      border: 1px solid #dce6ff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 8px 18px rgba(18, 45, 103, 0.04);
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 10px;
+      color: #193b89;
+      background: #eef4ff;
+      border-bottom: 1px solid #dbe6ff;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #e6eefc;
+      color: #172033;
+      line-height: 1.5;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .insight {
+      padding: 20px 22px;
+      border-radius: 22px;
+      border-left: 6px solid #4f72ff;
+      background:
+        radial-gradient(circle at top right, rgba(79, 114, 255, .13), transparent 34%),
+        #eef4ff;
+      line-height: 1.85;
+      font-size: 15px;
+      color: #263653;
+    }
+
+    .suggestion-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .suggestion {
+      padding: 17px 18px;
+      border-radius: 19px;
+      background:
+        radial-gradient(circle at top right, rgba(79, 114, 255, .10), transparent 32%),
+        #f8fbff;
+      border: 1px solid #dbe6ff;
+      line-height: 1.75;
+      color: #263653;
+    }
+
+    .suggestion strong {
+      color: #193b89;
+    }
+
+    ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+      line-height: 1.9;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 18px;
+      color: #8390a8;
+      font-size: 12px;
+      background: #f7f9ff;
+      border-top: 1px solid #e6eefc;
+    }
+
+    @media (max-width: 960px) {
+      body {
+        padding: 16px;
+      }
+
+      .hero {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero-status {
+        width: 100%;
+      }
+
+      .grid-4,
+      .grid-3,
+      .grid-2,
+      .kpi-grid,
+      .radar-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="report">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="eyebrow">Daily Ops Command Center</div>
+        <h1>遊戲整體押量、虎機與魚機營運分析日報</h1>
+        <p>報表日期：2026-07-01｜比較日期：2026-06-30</p>
+        <div class="hero-meta">
+          <span class="meta-chip">整體押量監控</span>
+          <span class="meta-chip">虎機 × 魚機雙品類</span>
+          <span class="meta-chip">自動化日報</span>
+        </div>
+      </div>
+
+      <div class="hero-status">
+        <div class="status-label">今日營運狀態</div>
+        <div class="status-value">雙品類升溫</div>
+        <div class="status-desc">虎機與魚機同步升溫，適合觀察是否能包裝成跨品類連動活動。</div>
+      </div>
+    </div>
+
+    <div class="content">
+      
+  <div class="section">
+    <h2 class="section-title"><span class="icon">📊</span>昨日整體押量 KPI</h2>
+    <div class="section-subtitle">本月均值區間：2026-07-01 ～ 2026-07-01，資料天數 1 天。</div>
+<div class="kpi-grid">
+  
+    <div class="kpi-card">
+      <div class="kpi-label">整體總押量</div>
+      <div class="kpi-value">20,687,592,645</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">18,134,074,424</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+2,553,518,221</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+14.08%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>本月均值</span>
+          <span class="kpi-compare-value neutral">20,687,592,645</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察整體押注規模與本月平均水位差異。</div>
+    </div>
+  
+    <div class="kpi-card">
+      <div class="kpi-label">押注人數</div>
+      <div class="kpi-value">18,736</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">17,850</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+886</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+4.96%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>本月均值</span>
+          <span class="kpi-compare-value neutral">18,736</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察活躍玩家量是否高於本月均值。</div>
+    </div>
+  
+    <div class="kpi-card">
+      <div class="kpi-label">人均押注</div>
+      <div class="kpi-value">1,104,163</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">1,015,915</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+88,248</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+8.69%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>本月均值</span>
+          <span class="kpi-compare-value neutral">1,104,163</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察押注強度與玩家集中度變化。</div>
+    </div>
+</div></div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🛰️</span>營運雷達</h2>
+    <div class="section-subtitle">快速判斷整體、虎機、魚機與機台集中度。</div>
+<div class="radar-grid">
+  <div class="radar-card">
+    <div class="radar-label">整體押量趨勢</div>
+    <div class="radar-status">雙品類升溫</div>
+    <div class="radar-desc">虎機與魚機同步升溫，適合觀察是否能包裝成跨品類連動活動。</div>
+  </div>
+  <div class="radar-card">
+    <div class="radar-label">虎機狀態</div>
+    <div class="radar-status positive">升溫</div>
+    <div class="radar-desc">虎機適合觀察主力機台、任務入口與中段誘因。</div>
+  </div>
+  <div class="radar-card">
+    <div class="radar-label">魚機狀態</div>
+    <div class="radar-status positive">升溫</div>
+    <div class="radar-desc">魚機適合觀察 Boss 熱區、火力事件與回流鉤子。</div>
+  </div>
+  <div class="radar-card">
+    <div class="radar-label">機台集中度</div>
+    <div class="radar-status">Top 機台追蹤</div>
+    <div class="radar-desc">觀察 Top 3 與正負貢獻機台是否過度集中。</div>
+  </div>
+</div></div>
+<div class="section monthly-bet-section">
+  <h2 class="section-title"><span class="icon">📈</span>本月押量走勢｜v3 灰線完整上月</h2>
+  <p class="section-subtitle">統計區間：2026-07-01 ～ 2026-07-01；灰色上月線：2026-06-01 ～ 2026-06-30。滑到折線圖點位可查看該日押量與占總押比例；總押點位會拆出上月同期總押量、魚機、虎機與其他押量；上方卡片同步呈現上月同期累計與成長率。</p>
+
+  <div class="grid-4" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="label">本月總押量</div>
+      <div class="value">20,553,200,939</div>
+      <div class="muted">上月同期：24,355,647,543</div>
+      <div class="muted">較上月同期 <span class="negative">下滑 15.61%</span></div>
+    </div>
+    <div class="card">
+      <div class="label">魚機押量 / 占比</div>
+      <div class="value">9,273,312,629</div>
+      <div class="muted">占本月總押 <span class="positive">45.12%</span></div>
+      <div class="muted">上月同期：12,405,306,708</div>
+      <div class="muted">較上月同期 <span class="negative">下滑 25.25%</span></div>
+    </div>
+    <div class="card">
+      <div class="label">虎機押量 / 占比</div>
+      <div class="value">8,172,060,480</div>
+      <div class="muted">占本月總押 <span class="neutral">39.76%</span></div>
+      <div class="muted">上月同期：8,670,244,579</div>
+      <div class="muted">較上月同期 <span class="negative">下滑 5.75%</span></div>
+    </div>
+    <div class="card">
+      <div class="label">其他押量 / 占比</div>
+      <div class="value">3,107,827,830</div>
+      <div class="muted">占本月總押 <span class="neutral">15.12%</span></div>
+      <div class="muted">上月同期：3,280,096,257</div>
+      <div class="muted">較上月同期 <span class="negative">下滑 5.25%</span></div>
+    </div>
+  </div>
+
+  <div class="card monthly-chart-card" style="padding:22px; position:relative; overflow:visible;">
+    <div class="label">互動折線圖｜本月總押量 vs 魚機 vs 虎機 vs 上月同期｜v3 灰線完整上月</div>
+    <svg class="monthly-line-chart" viewBox="0 0 1040 430" width="100%" height="auto" role="img" aria-label="本月押量互動折線圖">
+      <rect x="0" y="0" width="1040" height="430" rx="22" fill="#f8fbff"></rect>
+      <line x1="74" y1="318.0" x2="1012" y2="318.0" stroke="rgba(220,230,255,.95)" stroke-width="1" />
+<text x="62" y="322.0" text-anchor="end" font-size="12" fill="#667493">0</text>
+<line x1="74" y1="248.0" x2="1012" y2="248.0" stroke="rgba(220,230,255,.95)" stroke-width="1" />
+<text x="62" y="252.0" text-anchor="end" font-size="12" fill="#667493">60.9億</text>
+<line x1="74" y1="178.0" x2="1012" y2="178.0" stroke="rgba(220,230,255,.95)" stroke-width="1" />
+<text x="62" y="182.0" text-anchor="end" font-size="12" fill="#667493">121.8億</text>
+<line x1="74" y1="108.0" x2="1012" y2="108.0" stroke="rgba(220,230,255,.95)" stroke-width="1" />
+<text x="62" y="112.0" text-anchor="end" font-size="12" fill="#667493">182.7億</text>
+<line x1="74" y1="38.0" x2="1012" y2="38.0" stroke="rgba(220,230,255,.95)" stroke-width="1" />
+<text x="62" y="42.0" text-anchor="end" font-size="12" fill="#667493">243.6億</text>
+      <polyline points="74.0,38.0 105.3,50.2 136.5,94.4 167.8,91.4 199.1,84.3 230.3,49.7 261.6,75.0 292.9,78.3 324.1,89.3 355.4,111.1 386.7,92.3 417.9,108.1 449.2,110.3 480.5,138.3 511.7,85.2 543.0,139.1 574.3,110.2 605.5,120.5 636.8,82.5 668.1,102.0 699.3,112.1 730.6,114.9 761.9,56.6 793.1,56.5 824.4,115.5 855.7,120.7 886.9,86.2 918.2,132.3 949.5,114.1 980.7,109.8" fill="none" stroke="#9aa4b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 7" opacity="0.9" />
+      <polyline points="74.0,81.7" fill="none" stroke="#2146d8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <polyline points="74.0,211.4" fill="none" stroke="#00a6c8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <polyline points="74.0,224.1" fill="none" stroke="#f08a24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-01｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;24,355,647,543&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-01&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="74.0" cy="38.0" r="14" fill="transparent"></circle>
+      <circle cx="74.0" cy="38.0" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-02｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;23,291,216,053&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-02&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="105.3" cy="50.2" r="14" fill="transparent"></circle>
+      <circle cx="105.3" cy="50.2" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-03｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;19,450,712,405&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-03&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="136.5" cy="94.4" r="14" fill="transparent"></circle>
+      <circle cx="136.5" cy="94.4" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-04｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;19,708,879,845&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-04&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="167.8" cy="91.4" r="14" fill="transparent"></circle>
+      <circle cx="167.8" cy="91.4" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-05｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;20,327,745,947&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-05&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="199.1" cy="84.3" r="14" fill="transparent"></circle>
+      <circle cx="199.1" cy="84.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-06｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;23,333,847,547&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-06&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="230.3" cy="49.7" r="14" fill="transparent"></circle>
+      <circle cx="230.3" cy="49.7" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-07｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;21,136,064,518&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-07&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="261.6" cy="75.0" r="14" fill="transparent"></circle>
+      <circle cx="261.6" cy="75.0" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-08｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;20,854,351,680&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-08&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="292.9" cy="78.3" r="14" fill="transparent"></circle>
+      <circle cx="292.9" cy="78.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-09｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;19,895,062,024&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-09&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="324.1" cy="89.3" r="14" fill="transparent"></circle>
+      <circle cx="324.1" cy="89.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-10｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,996,061,708&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-10&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="355.4" cy="111.1" r="14" fill="transparent"></circle>
+      <circle cx="355.4" cy="111.1" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-11｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;19,630,423,081&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-11&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="386.7" cy="92.3" r="14" fill="transparent"></circle>
+      <circle cx="386.7" cy="92.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-12｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;18,255,434,582&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-12&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="417.9" cy="108.1" r="14" fill="transparent"></circle>
+      <circle cx="417.9" cy="108.1" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-13｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;18,063,823,973&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-13&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="449.2" cy="110.3" r="14" fill="transparent"></circle>
+      <circle cx="449.2" cy="110.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-14｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;15,627,089,373&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-14&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="480.5" cy="138.3" r="14" fill="transparent"></circle>
+      <circle cx="480.5" cy="138.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-15｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;20,251,172,926&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-15&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="511.7" cy="85.2" r="14" fill="transparent"></circle>
+      <circle cx="511.7" cy="85.2" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-16｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;15,565,556,207&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-16&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="543.0" cy="139.1" r="14" fill="transparent"></circle>
+      <circle cx="543.0" cy="139.1" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-17｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;18,077,757,276&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-17&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="574.3" cy="110.2" r="14" fill="transparent"></circle>
+      <circle cx="574.3" cy="110.2" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-18｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,180,229,790&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-18&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="605.5" cy="120.5" r="14" fill="transparent"></circle>
+      <circle cx="605.5" cy="120.5" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-19｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;20,482,528,007&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-19&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="636.8" cy="82.5" r="14" fill="transparent"></circle>
+      <circle cx="636.8" cy="82.5" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-20｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;18,784,404,998&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-20&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="668.1" cy="102.0" r="14" fill="transparent"></circle>
+      <circle cx="668.1" cy="102.0" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-21｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,910,202,301&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-21&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="699.3" cy="112.1" r="14" fill="transparent"></circle>
+      <circle cx="699.3" cy="112.1" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-22｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,664,998,698&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-22&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="730.6" cy="114.9" r="14" fill="transparent"></circle>
+      <circle cx="730.6" cy="114.9" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-23｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;22,736,818,082&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-23&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="761.9" cy="56.6" r="14" fill="transparent"></circle>
+      <circle cx="761.9" cy="56.6" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-24｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;22,742,089,554&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-24&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="793.1" cy="56.5" r="14" fill="transparent"></circle>
+      <circle cx="793.1" cy="56.5" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-25｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,616,846,251&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-25&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="824.4" cy="115.5" r="14" fill="transparent"></circle>
+      <circle cx="824.4" cy="115.5" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-26｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,161,205,449&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-26&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="855.7" cy="120.7" r="14" fill="transparent"></circle>
+      <circle cx="855.7" cy="120.7" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-27｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;20,165,688,215&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-27&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="886.9" cy="86.2" r="14" fill="transparent"></circle>
+      <circle cx="886.9" cy="86.2" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-28｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;16,148,732,691&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-28&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="918.2" cy="132.3" r="14" fill="transparent"></circle>
+      <circle cx="918.2" cy="132.3" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-29｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;17,732,633,972&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-29&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="949.5" cy="114.1" r="14" fill="transparent"></circle>
+      <circle cx="949.5" cy="114.1" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-06-30｜上月同期總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;上月同期總押量：&lt;b&gt;18,107,773,306&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;對應本月日期：&lt;b&gt;2026-07-30&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="980.7" cy="109.8" r="14" fill="transparent"></circle>
+      <circle cx="980.7" cy="109.8" r="5.5" fill="#9aa4b2" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+      
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-07-01｜本月總押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;總押量：&lt;b&gt;20,553,200,939&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line last-month&quot;&gt;上月同期總押量：&lt;b&gt;24,355,647,543&lt;/b&gt;&lt;span&gt;2026-06-01&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line fish&quot;&gt;魚機押量：&lt;b&gt;9,273,312,629&lt;/b&gt;&lt;span&gt;45.12%&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line slot&quot;&gt;虎機押量：&lt;b&gt;8,172,060,480&lt;/b&gt;&lt;span&gt;39.76%&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line other&quot;&gt;其他押量：&lt;b&gt;3,107,827,830&lt;/b&gt;&lt;span&gt;15.12%&lt;/span&gt;&lt;/div&gt;
+    ">
+      <circle cx="74.0" cy="81.7" r="14" fill="transparent"></circle>
+      <circle cx="74.0" cy="81.7" r="5.5" fill="#2146d8" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+    <g class="monthly-point" tabindex="0" data-tooltip="
+      &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-07-01｜魚機押量&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-main&quot;&gt;魚機押量：&lt;b&gt;9,273,312,629&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line fish&quot;&gt;占當日總押：&lt;b&gt;45.12%&lt;/b&gt;&lt;/div&gt;
+      &lt;div class=&quot;m-tooltip-line total&quot;&gt;當日總押：&lt;b&gt;20,553,200,939&lt;/b&gt;&lt;/div&gt;
+    ">
+      <circle cx="74.0" cy="211.4" r="14" fill="transparent"></circle>
+      <circle cx="74.0" cy="211.4" r="5.5" fill="#00a6c8" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+    <g class="monthly-point" tabindex="0" data-tooltip="
+    &lt;div class=&quot;m-tooltip-title&quot;&gt;2026-07-01｜虎機押量&lt;/div&gt;
+    &lt;div class=&quot;m-tooltip-main&quot;&gt;虎機押量：&lt;b&gt;8,172,060,480&lt;/b&gt;&lt;/div&gt;
+    &lt;div class=&quot;m-tooltip-line slot&quot;&gt;占當日總押：&lt;b&gt;39.76%&lt;/b&gt;&lt;/div&gt;
+    &lt;div class=&quot;m-tooltip-line total&quot;&gt;當日總押：&lt;b&gt;20,553,200,939&lt;/b&gt;&lt;/div&gt;
+  ">
+      <circle cx="74.0" cy="224.1" r="14" fill="transparent"></circle>
+      <circle cx="74.0" cy="224.1" r="5.5" fill="#f08a24" stroke="#ffffff" stroke-width="2.5"></circle>
+    </g>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <line x1="74" y1="318.0" x2="1012" y2="318.0" stroke="#dbe6ff" stroke-width="1" />
+      <text x="74.0" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 74.0 360)">01日</text>
+<text x="105.3" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 105.3 360)">02日</text>
+<text x="136.5" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 136.5 360)">03日</text>
+<text x="167.8" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 167.8 360)">04日</text>
+<text x="199.1" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 199.1 360)">05日</text>
+<text x="230.3" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 230.3 360)">06日</text>
+<text x="261.6" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 261.6 360)">07日</text>
+<text x="292.9" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 292.9 360)">08日</text>
+<text x="324.1" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 324.1 360)">09日</text>
+<text x="355.4" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 355.4 360)">10日</text>
+<text x="386.7" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 386.7 360)">11日</text>
+<text x="417.9" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 417.9 360)">12日</text>
+<text x="449.2" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 449.2 360)">13日</text>
+<text x="480.5" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 480.5 360)">14日</text>
+<text x="511.7" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 511.7 360)">15日</text>
+<text x="543.0" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 543.0 360)">16日</text>
+<text x="574.3" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 574.3 360)">17日</text>
+<text x="605.5" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 605.5 360)">18日</text>
+<text x="636.8" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 636.8 360)">19日</text>
+<text x="668.1" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 668.1 360)">20日</text>
+<text x="699.3" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 699.3 360)">21日</text>
+<text x="730.6" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 730.6 360)">22日</text>
+<text x="761.9" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 761.9 360)">23日</text>
+<text x="793.1" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 793.1 360)">24日</text>
+<text x="824.4" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 824.4 360)">25日</text>
+<text x="855.7" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 855.7 360)">26日</text>
+<text x="886.9" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 886.9 360)">27日</text>
+<text x="918.2" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 918.2 360)">28日</text>
+<text x="949.5" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 949.5 360)">29日</text>
+<text x="980.7" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 980.7 360)">30日</text>
+<text x="1012.0" y="360" text-anchor="end" font-size="10.5" fill="#667493" transform="rotate(-45 1012.0 360)">31日</text>
+      <g transform="translate(74, 400)">
+        <circle cx="0" cy="0" r="6" fill="#2146d8"></circle><text x="12" y="4" font-size="13" fill="#253653" font-weight="800">本月總押量</text>
+        <circle cx="140" cy="0" r="6" fill="#00a6c8"></circle><text x="152" y="4" font-size="13" fill="#253653" font-weight="800">魚機押量</text>
+        <circle cx="260" cy="0" r="6" fill="#f08a24"></circle><text x="272" y="4" font-size="13" fill="#253653" font-weight="800">虎機押量</text>
+        <circle cx="390" cy="0" r="6" fill="#9aa4b2"></circle><text x="402" y="4" font-size="13" fill="#253653" font-weight="800">上月同期總押量</text>
+      </g>
+    </svg>
+    <div class="monthly-tooltip" aria-hidden="true"></div>
+  </div>
+
+  <div class="insight" style="margin-top:16px;">本月至 2026-07-01 累計總押量為 20,553,200,939，較上月同期下滑 15.61%；其中魚機占 45.12%、虎機占 39.76%、其他占 15.12%。灰色上月同期走勢已預先顯示到 2026-06-30。</div>
+</div>
+
+<style>
+  .monthly-bet-section .monthly-line-chart .monthly-point { cursor: pointer; outline: none; }
+  .monthly-bet-section .monthly-line-chart .monthly-point:hover circle:last-child,
+  .monthly-bet-section .monthly-line-chart .monthly-point:focus circle:last-child {
+    r: 8;
+    filter: drop-shadow(0 4px 8px rgba(18,45,103,.28));
+  }
+  .monthly-tooltip {
+    position: absolute;
+    z-index: 20;
+    min-width: 240px;
+    max-width: 340px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(8, 20, 54, .94);
+    color: #fff;
+    box-shadow: 0 16px 32px rgba(0,0,0,.24);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -112%);
+    transition: opacity .12s ease;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .monthly-tooltip.is-visible { opacity: 1; }
+  .monthly-tooltip .m-tooltip-title { font-weight: 950; margin-bottom: 6px; color: #dfe8ff; }
+  .monthly-tooltip .m-tooltip-main { font-size: 14px; margin-bottom: 6px; }
+  .monthly-tooltip .m-tooltip-line { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(255,255,255,.12); padding-top: 5px; margin-top: 5px; }
+  .monthly-tooltip .fish span, .monthly-tooltip .fish b { color: #69e8ff; }
+  .monthly-tooltip .slot span, .monthly-tooltip .slot b { color: #ffc078; }
+  .monthly-tooltip .other span, .monthly-tooltip .other b { color: #d8e0f5; }
+  .monthly-tooltip .last-month span, .monthly-tooltip .last-month b { color: #cfd6e4; }
+</style>
+
+<script>
+(function () {
+  var root = document.currentScript.previousElementSibling;
+  while (root && !root.classList.contains('monthly-bet-section')) {
+    root = root.previousElementSibling;
+  }
+  if (!root) return;
+  var card = root.querySelector('.monthly-chart-card');
+  var tooltip = root.querySelector('.monthly-tooltip');
+  var points = root.querySelectorAll('.monthly-point');
+  if (!card || !tooltip || !points.length) return;
+
+  function showTooltip(event, point) {
+    tooltip.innerHTML = point.getAttribute('data-tooltip') || '';
+    tooltip.classList.add('is-visible');
+    tooltip.setAttribute('aria-hidden', 'false');
+
+    var cardRect = card.getBoundingClientRect();
+    var clientX = event.clientX;
+    var clientY = event.clientY;
+
+    if ((clientX === 0 || clientY === 0) && point.querySelector('circle:last-child')) {
+      var dotRect = point.querySelector('circle:last-child').getBoundingClientRect();
+      clientX = dotRect.left + dotRect.width / 2;
+      clientY = dotRect.top + dotRect.height / 2;
+    }
+
+    var x = clientX - cardRect.left;
+    var y = clientY - cardRect.top;
+    var minX = 150;
+    var maxX = cardRect.width - 150;
+    tooltip.style.left = Math.max(minX, Math.min(maxX, x)) + 'px';
+    tooltip.style.top = Math.max(70, y) + 'px';
+  }
+
+  function hideTooltip() {
+    tooltip.classList.remove('is-visible');
+    tooltip.setAttribute('aria-hidden', 'true');
+  }
+
+  points.forEach(function (point) {
+    point.addEventListener('mousemove', function (event) { showTooltip(event, point); });
+    point.addEventListener('mouseenter', function (event) { showTooltip(event, point); });
+    point.addEventListener('focus', function (event) { showTooltip(event, point); });
+    point.addEventListener('mouseleave', hideTooltip);
+    point.addEventListener('blur', hideTooltip);
+  });
+})();
+</script>
+
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🐯</span>虎機戰況總覽</h2>
+    <div class="section-subtitle">2026-07-01 vs 2026-06-30</div>
+<div class="kpi-grid">
+  
+    <div class="kpi-card">
+      <div class="kpi-label">虎機總押注</div>
+      <div class="kpi-value">8,172,060,480</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">6,508,233,238</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+1,663,827,242</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+25.56%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>七月總押量均值</span>
+          <span class="kpi-compare-value neutral">8,172,060,480</span>
+        </div>
+      </div>
+      <div class="kpi-note">虎機押量升溫，觀察是否由 Top 機台帶動。</div>
+    </div>
+  
+    <div class="kpi-card">
+      <div class="kpi-label">虎機參與玩家</div>
+      <div class="kpi-value">11,407</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">11,466</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value negative">-59</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value negative">-0.51%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>七月參與玩家均值</span>
+          <span class="kpi-compare-value neutral">11,407</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察虎機玩家活躍是否與押量同步。</div>
+    </div>
+  
+    <div class="kpi-card">
+      <div class="kpi-label">虎機人均押注</div>
+      <div class="kpi-value">716,408</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">567,611</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+148,796</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+26.21%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>七月人均押注均值</span>
+          <span class="kpi-compare-value neutral">716,408</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察虎機押注強度與集中度。</div>
+    </div>
+</div></div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🐟</span>魚機戰況總覽</h2>
+    <div class="section-subtitle">2026-07-01 vs 2026-06-30</div>
+<div class="kpi-grid">
+  
+    <div class="kpi-card">
+      <div class="kpi-label">魚機總押注</div>
+      <div class="kpi-value">9,273,312,629</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">9,036,331,816</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+236,980,812</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+2.62%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>七月總押量均值</span>
+          <span class="kpi-compare-value neutral">9,273,312,629</span>
+        </div>
+      </div>
+      <div class="kpi-note">魚機押量升溫，觀察主力機台熱度是否延續。</div>
+    </div>
+  
+    <div class="kpi-card">
+      <div class="kpi-label">魚機參與玩家</div>
+      <div class="kpi-value">4,658</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">4,914</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value negative">-256</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value negative">-5.21%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>七月參與玩家均值</span>
+          <span class="kpi-compare-value neutral">4,658</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察魚機玩家活躍是否與押量同步。</div>
+    </div>
+  
+    <div class="kpi-card">
+      <div class="kpi-label">魚機人均押注</div>
+      <div class="kpi-value">1,990,836</div>
+      <div class="kpi-compare">
+        <div class="kpi-compare-row">
+          <span>2026-06-30 昨日</span>
+          <span class="kpi-compare-value">1,838,895</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 變化</span>
+          <span class="kpi-compare-value positive">+151,940</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>2026-07-01 vs 2026-06-30 成長率</span>
+          <span class="kpi-compare-value positive">+8.26%</span>
+        </div>
+        <div class="kpi-compare-row">
+          <span>七月人均押注均值</span>
+          <span class="kpi-compare-value neutral">1,990,836</span>
+        </div>
+      </div>
+      <div class="kpi-note">觀察魚機押注強度與集中度。</div>
+    </div>
+</div></div><div class="grid-2">
+  <div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🏆</span>虎機 Top 3 排行</h2>
+    
+<div class="rank-list">
+    <div class="rank-item">
+      <div class="rank-badge">🥇</div>
+      <div class="rank-main">
+        <div class="rank-title">第1名: 戰神賽特</div>
+        <div class="rank-meta">押量 3,371,377,808｜玩家 4,119</div>
+      </div>
+    </div>
+    <div class="rank-item">
+      <div class="rank-badge">🥈</div>
+      <div class="rank-main">
+        <div class="rank-title">第2名: 諸神黃昏</div>
+        <div class="rank-meta">押量 579,567,842｜玩家 625</div>
+      </div>
+    </div>
+    <div class="rank-item">
+      <div class="rank-badge">🥉</div>
+      <div class="rank-main">
+        <div class="rank-title">第3名: 福星報喜2-指路聚財</div>
+        <div class="rank-meta">押量 518,198,794｜玩家 880</div>
+      </div>
+    </div></div></div></div>
+  <div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🏆</span>魚機 Top 3 排行</h2>
+    
+<div class="rank-list">
+    <div class="rank-item">
+      <div class="rank-badge">🥇</div>
+      <div class="rank-main">
+        <div class="rank-title">第1名: 威鯨傳奇5-浴火鳳凰</div>
+        <div class="rank-meta">押量 3,452,570,085｜玩家 1,397</div>
+      </div>
+    </div>
+    <div class="rank-item">
+      <div class="rank-badge">🥈</div>
+      <div class="rank-main">
+        <div class="rank-title">第2名: 威鯨傳奇7</div>
+        <div class="rank-meta">押量 2,303,742,687｜玩家 662</div>
+      </div>
+    </div>
+    <div class="rank-item">
+      <div class="rank-badge">🥉</div>
+      <div class="rank-main">
+        <div class="rank-title">第3名: 勇者1代-凜冬將至</div>
+        <div class="rank-meta">押量 834,217,543｜玩家 638</div>
+      </div>
+    </div></div></div></div>
+</div><div class="grid-2">
+  <div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🟢</span>虎機正向貢獻 Top 5</h2>
+    
+<table>
+    <thead>
+      <tr>
+        <th>機台名稱</th>
+        <th>押量變化</th>
+        <th>漲幅%</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+          <tr>
+            <td>諸神黃昏</td>
+            <td class="positive">+243,821,895</td>
+            <td class="positive">+72.62%</td>
+          </tr>
+          <tr>
+            <td>煙花爆喜</td>
+            <td class="positive">+212,871,081</td>
+            <td class="positive">+269.47%</td>
+          </tr>
+          <tr>
+            <td>福星報喜2-指路聚財</td>
+            <td class="positive">+209,292,537</td>
+            <td class="positive">+67.75%</td>
+          </tr>
+          <tr>
+            <td>宙斯2-黃金雷霆</td>
+            <td class="positive">+122,922,227</td>
+            <td class="positive">+54.06%</td>
+          </tr>
+          <tr>
+            <td>金牛報喜</td>
+            <td class="positive">+99,028,682</td>
+            <td class="positive">+113.00%</td>
+          </tr>
+    </tbody>
+  </table></div></div>
+  <div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🔴</span>虎機負向影響 Top 5</h2>
+    
+<table>
+    <thead>
+      <tr>
+        <th>機台名稱</th>
+        <th>押量變化</th>
+        <th>漲幅%</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+          <tr>
+            <td>戰神賽特</td>
+            <td class="negative">-63,638,951</td>
+            <td class="negative">-1.85%</td>
+          </tr>
+    </tbody>
+  </table></div></div>
+</div><div class="grid-2">
+  <div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🟢</span>魚機正向貢獻 Top 5</h2>
+    
+<table>
+    <thead>
+      <tr>
+        <th>機台名稱</th>
+        <th>押量變化</th>
+        <th>漲幅%</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+          <tr>
+            <td>威鯨傳奇7</td>
+            <td class="positive">+538,527,051</td>
+            <td class="positive">+30.51%</td>
+          </tr>
+          <tr>
+            <td>威鯨傳奇5-浴火鳳凰</td>
+            <td class="positive">+476,590,619</td>
+            <td class="positive">+16.01%</td>
+          </tr>
+          <tr>
+            <td>海王傳說</td>
+            <td class="positive">+123,015,754</td>
+            <td class="positive">+111.70%</td>
+          </tr>
+          <tr>
+            <td>勇者戰紀</td>
+            <td class="positive">+110,396,515</td>
+            <td class="positive">+32.63%</td>
+          </tr>
+          <tr>
+            <td>勇者1代-凜冬將至</td>
+            <td class="positive">+57,075,831</td>
+            <td class="positive">+7.34%</td>
+          </tr>
+    </tbody>
+  </table></div></div>
+  <div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🔴</span>魚機負向影響 Top 5</h2>
+    
+<table>
+    <thead>
+      <tr>
+        <th>機台名稱</th>
+        <th>押量變化</th>
+        <th>漲幅%</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+          <tr>
+            <td>威鯨傳奇-深海秘寶Bonus</td>
+            <td class="negative">-854,579,213</td>
+            <td class="negative">-68.35%</td>
+          </tr>
+          <tr>
+            <td>威鯨傳奇4</td>
+            <td class="negative">-118,689,230</td>
+            <td class="negative">-13.08%</td>
+          </tr>
+          <tr>
+            <td>三隻小豬</td>
+            <td class="negative">-114,853,766</td>
+            <td class="negative">-35.41%</td>
+          </tr>
+          <tr>
+            <td>威鯨傳奇6</td>
+            <td class="negative">-70,130,420</td>
+            <td class="negative">-19.17%</td>
+          </tr>
+    </tbody>
+  </table></div></div>
+</div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">⚡</span>波動最大機台</h2>
+    <div class="section-subtitle">依押量變化絕對值排序。</div>
+<table>
+    <thead>
+      <tr>
+        <th>機台名稱</th>
+        <th>押量變化</th>
+        <th>漲幅%</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+          <tr>
+            <td>威鯨傳奇-深海秘寶Bonus</td>
+            <td class="negative">-854,579,213</td>
+            <td class="negative">-68.35%</td>
+          </tr>
+          <tr>
+            <td>威鯨傳奇7</td>
+            <td class="positive">+538,527,051</td>
+            <td class="positive">+30.51%</td>
+          </tr>
+          <tr>
+            <td>威鯨傳奇5-浴火鳳凰</td>
+            <td class="positive">+476,590,619</td>
+            <td class="positive">+16.01%</td>
+          </tr>
+          <tr>
+            <td>諸神黃昏</td>
+            <td class="positive">+243,821,895</td>
+            <td class="positive">+72.62%</td>
+          </tr>
+          <tr>
+            <td>煙花爆喜</td>
+            <td class="positive">+212,871,081</td>
+            <td class="positive">+269.47%</td>
+          </tr>
+          <tr>
+            <td>福星報喜2-指路聚財</td>
+            <td class="positive">+209,292,537</td>
+            <td class="positive">+67.75%</td>
+          </tr>
+          <tr>
+            <td>海王傳說</td>
+            <td class="positive">+123,015,754</td>
+            <td class="positive">+111.70%</td>
+          </tr>
+          <tr>
+            <td>宙斯2-黃金雷霆</td>
+            <td class="positive">+122,922,227</td>
+            <td class="positive">+54.06%</td>
+          </tr>
+    </tbody>
+  </table></div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">🔎</span>跨品類營運觀察</h2>
+    <div class="section-subtitle">改看玩家流向、品類互相拉動與可操作切入點。</div>
+
+    <div class="insight creative-insight">
+      
+        <div style="margin-bottom:14px;">
+          <strong>觀察 1｜雙品類都有熱度，適合串成活動路徑</strong><br>
+          今天不是單一品類獨強，而是虎機與魚機都有操作空間。可以設計跨品類路徑，例如魚機累積火力值後解鎖虎機加碼，或虎機完成指定條件後送魚機挑戰次數，把玩家從單點遊玩拉成一條完整活動動線。
+        </div>
+      
+        <div style="margin-bottom:14px;">
+          <strong>觀察 2｜虎機核心玩家還在，但外圍沒跟上</strong><br>
+          虎機比較像少數玩家打得深，但一般玩家沒有一起進場。可以把獎勵拆成兩層：核心玩家給累積挑戰，一般玩家給低門檻任務，避免虎機熱度只靠高押玩家支撐。
+        </div>
+      
+        <div style="margin-bottom:0;">
+          <strong>觀察 3｜魚機火力集中，適合包裝成事件</strong><br>
+          魚機目前像是核心玩家火力集中。這種盤可以把它包成「Boss 熱區」、「火力高峰」、「限時追擊」這類事件感，而不是只放一般公告，讓旁觀玩家覺得現在進場比較有氛圍。
+        </div>
+      
+    </div>
+  </div>
+  <div class="section">
+    <h2 class="section-title"><span class="icon">✅</span>今日營運建議</h2>
+    
+<div class="suggestion-list">
+  
+    <div class="suggestion">
+      <strong>1. </strong>優先檢查虎機與魚機正向貢獻最高機台，確認是否受到活動、推播、新機曝光或玩家集中押注影響。
+    </div>
+  
+    <div class="suggestion">
+      <strong>2. </strong>針對負向影響較大的虎機與魚機，觀察是否為玩家流失、押注強度下降或前一日高基期造成。
+    </div>
+  
+    <div class="suggestion">
+      <strong>3. </strong>若總押注上升但玩家數下降，建議進一步查看高押玩家貢獻占比與分層變化。
+    </div>
+  
+</div></div>
+    </div>
+
+    <div class="footer">
+      Generated by n8n + Gemini HTML Generator
+    </div>
+  </div>
+</body>
+</html>
